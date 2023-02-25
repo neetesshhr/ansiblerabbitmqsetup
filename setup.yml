@@ -1,0 +1,39 @@
+- hosts: connection
+  become: yes
+  remote_user: ubuntu
+  become_user: root
+  vars:
+    hosts_file: "files/hosts"
+    etc_hosts_file: "/etc/hosts"
+  tasks:
+  - name: Update package cache
+    apt:
+      update_cache: yes
+    register: "output"
+
+
+  - name: Copy hosts file to server 
+    copy:
+      src: "{{hosts_file}}"
+      dest: "{{etc_hosts_file}}"
+      mode: '0644'
+
+  
+  - name: install ansible to hosts machine
+    apt:
+      name: ansible
+      state: present
+  
+  - name: copy the files folder
+    copy:
+      src: files
+      dest: /home/ubuntu
+      mode: '0644'
+  
+  # - name: run ansible script inside the main machine
+  #   ansible.builtin.command: "ansible-playbook -i /home/ubuntu/files/inventory.yml /home/ubuntu/files/main.yml" 
+      
+
+   
+
+
