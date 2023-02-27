@@ -1,17 +1,20 @@
 - hosts: localhost
   become: true
   tasks:
+  - name: update cache
+    apt:
+      update_cache: yes
   - name: install rabbitmq to hosts machine
     apt:
       name: rabbitmq-server 
-      state: present
-  - name: Download the cookie
-    fetch:
-      src: /var/lib/rabbitmq/.erlang.cookie
-      dest: rabbitmqcookie
-      flat: yes
+      state: present 
 
-- hosts: node01  # for node01
+  - name: Download the cookie
+    become: true
+    shell: "cat /var/lib/rabbitmq/.erlang.cookie > rabbitmqcookie"
+
+
+- hosts: node02  # for node02
   become: yes
   become_user: root
   remote_user: ubuntu
@@ -35,13 +38,25 @@
       state: present
 
   - name: stop rabbitmq server
-    command: "sudo systemctl stop rabbitmq-server"
+    command:  "sudo systemctl stop rabbitmq-server"
+   
 
   - name: Copy cookie file to server 
     copy:
       src: rabbitmqcookie
       dest: /var/lib/rabbitmq/.erlang.cookie
       mode: '0644'
+
+  - name: Change owner of .erlang.cookie
+    become: true
+    become_user: root
+    command: chown rabbitmq:rabbitmq /var/lib/rabbitmq/.erlang.cookie
+
+  - name: Set permissions of .erlang.cookie
+    become: true
+    become_user: root
+    command: chmod 600 /var/lib/rabbitmq/.erlang.cookie
+
 
   - name: start rabbitmq-server 
     command: "sudo systemctl start rabbitmq-server"
@@ -50,13 +65,13 @@
     command: "sudo rabbitmqctl stop_app"
   
   - name: join the main cluster
-    command: "sudo rabbitmqctl join_cluster rabbit@main"
+    command: "sudo rabbitmqctl join_cluster rabbit@node01"
   
   - name: start rabbitmq app
     command: "sudo rabbitmqctl start_app"
 
 
-- hosts: node02  # for node01
+- hosts: node03  # for node02
   become: yes
   become_user: root
   remote_user: ubuntu
@@ -80,13 +95,25 @@
       state: present
 
   - name: stop rabbitmq server
-    command: "sudo systemctl stop rabbitmq-server"
+    command:  "sudo systemctl stop rabbitmq-server"
+   
 
-  - name: Copy hosts file to server 
+  - name: Copy cookie file to server 
     copy:
       src: rabbitmqcookie
       dest: /var/lib/rabbitmq/.erlang.cookie
       mode: '0644'
+
+  - name: Change owner of .erlang.cookie
+    become: true
+    become_user: root
+    command: chown rabbitmq:rabbitmq /var/lib/rabbitmq/.erlang.cookie
+
+  - name: Set permissions of .erlang.cookie
+    become: true
+    become_user: root
+    command: chmod 600 /var/lib/rabbitmq/.erlang.cookie
+
 
   - name: start rabbitmq-server 
     command: "sudo systemctl start rabbitmq-server"
@@ -95,7 +122,7 @@
     command: "sudo rabbitmqctl stop_app"
   
   - name: join the main cluster
-    command: "sudo rabbitmqctl join_cluster rabbit@main"
+    command: "sudo rabbitmqctl join_cluster rabbit@node01"
   
   - name: start rabbitmq app
     command: "sudo rabbitmqctl start_app"

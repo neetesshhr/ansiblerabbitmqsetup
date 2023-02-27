@@ -9,5 +9,6 @@ ff02::2 ip6-allrouters
 ff02::3 ip6-allhosts
 
 
-172.31.19.153 main
-172.31.27.118 node02
+
+172.31.29.163 node01
+172.31.30.24 node03
