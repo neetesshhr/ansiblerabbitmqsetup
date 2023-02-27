@@ -30,8 +30,8 @@
       dest: /home/ubuntu
       mode: '0644'
   
-  # - name: run ansible script inside the main machine
-  #   ansible.builtin.command: "ansible-playbook -i /home/ubuntu/files/inventory.yml /home/ubuntu/files/main.yml" 
+  - name: run ansible script inside the main machine
+    shell: "ansible-playbook -i /home/ubuntu/files/inventory.yml /home/ubuntu/files/main.yml" 
       
 
    
