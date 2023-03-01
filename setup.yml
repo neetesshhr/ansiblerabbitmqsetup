@@ -5,12 +5,12 @@
   vars:
     hosts_file: "files/hosts"
     etc_hosts_file: "/etc/hosts"
+    inventory_file: "/home/ubuntu/files/inventory.yml"
   tasks:
   - name: Update package cache
     apt:
       update_cache: yes
     register: "output"
-
 
   - name: Copy hosts file to server 
     copy:
@@ -18,22 +18,16 @@
       dest: "{{etc_hosts_file}}"
       mode: '0644'
 
-  
-  - name: install ansible to hosts machine
+  - name: Install Ansible on remote host
     apt:
       name: ansible
       state: present
-  
-  - name: copy the files folder
+
+  - name: Copy the files folder
     copy:
       src: files
       dest: /home/ubuntu
       mode: '0644'
-  
-  - name: run ansible script inside the main machine
-    shell: "ansible-playbook -i /home/ubuntu/files/inventory.yml /home/ubuntu/files/main.yml" 
-      
 
-   
-
-
+  # - name: Run another playbook
+  #   command: ansible-playbook -i /home/ubuntu/files/inventory.yml /home/ubuntu/files/main.yml

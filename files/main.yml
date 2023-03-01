@@ -4,15 +4,17 @@
   - name: update cache
     apt:
       update_cache: yes
-  - name: install rabbitmq to hosts machine
-    apt:
-      name: rabbitmq-server 
-      state: present 
+
+  - name: install rabbitmq with it dependencies
+    shell: "sh /home/ubuntu/files/install.sh"
 
   - name: Download the cookie
     become: true
     shell: "cat /var/lib/rabbitmq/.erlang.cookie > rabbitmqcookie"
+  
 
+  
+  
 
 - hosts: node02  # for node02
   become: yes
@@ -31,11 +33,15 @@
       src: "{{hosts_file}}"
       dest: "{{etc_hosts_file}}"
       mode: "0644"
+  
+  - name: copy the rabbitmq instalation script
+    copy:
+      src: install.sh
+      dest: /home/ubuntu/install.sh
+
       
   - name: install rabbitmq to hosts machine
-    apt:
-      name: rabbitmq-server 
-      state: present
+    shell: "sh /home/ubuntu/install.sh"
 
   - name: stop rabbitmq server
     command:  "sudo systemctl stop rabbitmq-server"
@@ -88,11 +94,15 @@
       src: "{{hosts_file}}"
       dest: "{{etc_hosts_file}}"
       mode: "0644"
+  
+  - name: copy the rabbitmq instalation script
+    copy:
+      src: install.sh
+      dest: /home/ubuntu/install.sh
+
       
   - name: install rabbitmq to hosts machine
-    apt:
-      name: rabbitmq-server 
-      state: present
+    shell: "sh /home/ubuntu/install.sh"
 
   - name: stop rabbitmq server
     command:  "sudo systemctl stop rabbitmq-server"
@@ -126,3 +136,38 @@
   
   - name: start rabbitmq app
     command: "sudo rabbitmqctl start_app"
+
+- hosts: localhost
+  become: true
+  tasks:
+  - name: Add admin user
+    shell: "sudo rabbitmqctl add_user admin AdminPassRabbitMQ"
+  
+  - name: Set user tags for admin
+    shell: "sudo rabbitmqctl set_user_tags admin administrator"
+  
+  - name: Set necessary management
+    shell: sudo rabbitmqctl set_permissions -p / admin ".*" ".*" ".*" 
+  
+  - name: add vhost
+    shell: sudo rabbitmqctl add_vhost app-qa1
+
+  - name: enable rabbitmq management
+    shell: sudo rabbitmq-plugins enable rabbitmq_management
+
+
+- hosts: node02  # for node02
+  become: yes
+  become_user: root
+  remote_user: ubuntu
+  tasks:
+  - name: enable rabbitmq management
+    shell: sudo rabbitmq-plugins enable rabbitmq_management 
+
+- hosts: node03  # for node02
+  become: yes
+  become_user: root
+  remote_user: ubuntu
+  tasks:
+  - name: enable rabbitmq management
+    shell: sudo rabbitmq-plugins enable rabbitmq_management 
